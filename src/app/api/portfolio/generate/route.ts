@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth/config";
 import { renderMinimalistTemplate } from "@/lib/templates/minimalist";
 import { renderCreativeTemplate } from "@/lib/templates/creative";
 import { renderDataVizTemplate } from "@/lib/templates/data-viz";
@@ -12,27 +11,26 @@ import { renderPortfolioClassicTemplate } from "@/lib/templates/portfolio-classi
 import { renderFramerMinimalTemplate } from "@/lib/templates/framer-minimal";
 import type { PortfolioConfig } from "@/types/portfolio";
 
-// Always return JSON — never redirect to login page for API routes.
-// This prevents "Unexpected token '<'" errors on the client.
+// ─── Why no auth() check here? ───────────────────────────────────────────────
+// This route is a pure rendering function: it takes a PortfolioConfig and
+// returns generated HTML. It accesses NO sensitive data (no GitHub API,
+// no database). The dashboard is already protected at the proxy layer
+// (src/proxy.ts) — only authenticated users can reach /dashboard/* routes.
+//
+// Adding auth() here caused production failures because Auth.js requires
+// AUTH_URL to be set (a Vercel env var), and when missing, auth() would
+// redirect to /login returning HTML, which crashed the client with:
+//   "Unexpected token '<', '<!DOCTYPE...' is not valid JSON"
+// ─────────────────────────────────────────────────────────────────────────────
+
 export async function POST(request: NextRequest) {
   try {
-    // auth() reads the session cookie — works in production when AUTH_URL is set
-    const session = await auth();
-
-    if (!session?.accessToken) {
-      // Return JSON 401, NOT a redirect to /login
-      return NextResponse.json(
-        { error: "Unauthorized — please sign in again." },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
     const config = body as PortfolioConfig;
 
-    if (!config || typeof config !== "object") {
+    if (!config || typeof config !== "object" || !config.settings) {
       return NextResponse.json(
-        { error: "Invalid portfolio config" },
+        { error: "Invalid portfolio config — missing settings." },
         { status: 400 }
       );
     }
@@ -74,10 +72,8 @@ export async function POST(request: NextRequest) {
         break;
     }
 
-    const files = [{ path: "index.html", content: html }];
-    return NextResponse.json({ files });
+    return NextResponse.json({ files: [{ path: "index.html", content: html }] });
   } catch (error) {
-    // Log full error server-side, return a clean JSON message to client
     console.error("Generation error:", error);
     const message =
       error instanceof Error ? error.message : "Unknown generation error";
