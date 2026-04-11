@@ -1,27 +1,34 @@
-import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // Next.js 16: middleware is now called "proxy"
 //
-// ⚠️  IMPORTANT — Auth architecture:
+// Auth architecture:
 //   - Authentication: Auth.js (GitHub OAuth) — sessions in JWT cookies
 //   - Database/Storage: Supabase — NOT used for auth, only for data
 //
-// This proxy only refreshes the Supabase *storage* client session so that
-// server components can read/write portfolio configs. It does NOT protect
-// routes — that is handled by src/app/dashboard/layout.tsx which calls
-// Auth.js auth() to verify the GitHub session.
-//
-// Do NOT add redirect logic here based on supabase.auth.getUser() —
-// that would always return null (users sign in via GitHub, not Supabase Auth)
-// and cause infinite redirect loops → "Server configuration error".
+// This proxy refreshes the Supabase STORAGE client session so server
+// components can read/write portfolio configs. Route protection is
+// handled by src/app/dashboard/layout.tsx (calls Auth.js auth()).
 
 export async function proxy(request: NextRequest) {
+  // If Supabase env vars are not set (e.g. missing on a new Vercel project),
+  // skip Supabase session refresh and just pass the request through.
+  // This prevents the proxy from crashing and returning an HTML error page.
+  if (
+    !process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  ) {
+    return NextResponse.next({ request });
+  }
+
+  // Dynamically import to avoid module-level crashes when env vars are missing
+  const { createServerClient } = await import("@supabase/ssr");
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
         getAll() {
@@ -40,9 +47,13 @@ export async function proxy(request: NextRequest) {
     }
   );
 
-  // Refresh Supabase storage session if expired.
-  // Required so server components have a valid Supabase client for DB ops.
-  await supabase.auth.getUser();
+  try {
+    // Refresh Supabase storage session if expired.
+    await supabase.auth.getUser();
+  } catch {
+    // If Supabase refresh fails, still pass the request through.
+    // Never let this crash the entire request pipeline.
+  }
 
   return supabaseResponse;
 }
