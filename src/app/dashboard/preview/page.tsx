@@ -38,22 +38,34 @@ export default function PreviewPage() {
       const res = await fetch("/api/portfolio/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // ensure session cookies sent in production
         body: JSON.stringify(config),
       });
-      const result = await res.json();
+
+      // Read as text first — if server returns HTML (login redirect),
+      // calling res.json() directly throws "Unexpected token '<'"
+      const text = await res.text();
+      let result: { files?: { path: string; content: string }[]; error?: string };
+      try {
+        result = JSON.parse(text);
+      } catch {
+        if (text.includes("<!DOCTYPE") || text.includes("<html")) {
+          throw new Error(
+            "Session expired — please sign out and sign in again."
+          );
+        }
+        throw new Error(`Unexpected server response (${res.status})`);
+      }
 
       if (!res.ok) {
-        // Surface the actual server error
         throw new Error(result.error || `Server error ${res.status}`);
       }
 
-      const htmlFile = result.files?.find(
-        (f: { path: string }) => f.path === "index.html"
-      );
+      const htmlFile = result.files?.find((f) => f.path === "index.html");
       if (htmlFile) {
         setPreviewHtml(htmlFile.content);
       } else {
-        throw new Error("No index.html found in generated files");
+        throw new Error("No index.html in generated output");
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Unknown error";

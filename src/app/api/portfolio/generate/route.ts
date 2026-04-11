@@ -12,16 +12,30 @@ import { renderPortfolioClassicTemplate } from "@/lib/templates/portfolio-classi
 import { renderFramerMinimalTemplate } from "@/lib/templates/framer-minimal";
 import type { PortfolioConfig } from "@/types/portfolio";
 
+// Always return JSON — never redirect to login page for API routes.
+// This prevents "Unexpected token '<'" errors on the client.
 export async function POST(request: NextRequest) {
-  const session = await auth();
-
-  if (!session?.accessToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   try {
+    // auth() reads the session cookie — works in production when AUTH_URL is set
+    const session = await auth();
+
+    if (!session?.accessToken) {
+      // Return JSON 401, NOT a redirect to /login
+      return NextResponse.json(
+        { error: "Unauthorized — please sign in again." },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const config = body as PortfolioConfig;
+
+    if (!config || typeof config !== "object") {
+      return NextResponse.json(
+        { error: "Invalid portfolio config" },
+        { status: 400 }
+      );
+    }
 
     const template = config.settings?.activeTemplate || "minimalist";
     let html: string;
@@ -63,9 +77,12 @@ export async function POST(request: NextRequest) {
     const files = [{ path: "index.html", content: html }];
     return NextResponse.json({ files });
   } catch (error) {
+    // Log full error server-side, return a clean JSON message to client
     console.error("Generation error:", error);
+    const message =
+      error instanceof Error ? error.message : "Unknown generation error";
     return NextResponse.json(
-      { error: "Failed to generate portfolio" },
+      { error: `Failed to generate portfolio: ${message}` },
       { status: 500 }
     );
   }
