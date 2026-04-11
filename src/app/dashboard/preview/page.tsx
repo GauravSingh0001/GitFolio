@@ -1,0 +1,194 @@
+"use client";
+
+import { useState } from "react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Monitor, Tablet, Smartphone, RefreshCw, Palette, ExternalLink } from "lucide-react";
+import { usePortfolioConfig } from "@/hooks/use-portfolio-config";
+import { useGitHubData } from "@/hooks/use-github-data";
+import { TEMPLATE_DEFINITIONS } from "@/types/portfolio";
+import type { TemplateId } from "@/types/portfolio";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const deviceSizes = {
+  desktop: { width: "100%", label: "Desktop", icon: Monitor },
+  tablet:  { width: "768px",  label: "Tablet",  icon: Tablet },
+  mobile:  { width: "375px",  label: "Mobile",  icon: Smartphone },
+};
+
+type DeviceType = keyof typeof deviceSizes;
+
+export default function PreviewPage() {
+  const { config, patch } = usePortfolioConfig();
+  const { isLoading: ghLoading } = useGitHubData();
+  const [device, setDevice] = useState<DeviceType>("desktop");
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [generating, setGenerating] = useState(false);
+
+  const activeTemplate = config?.settings?.activeTemplate ?? "minimalist";
+
+  const generatePreview = async () => {
+    if (!config) return;
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/portfolio/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
+      const result = await res.json();
+      const htmlFile = result.files?.find(
+        (f: { path: string }) => f.path === "index.html"
+      );
+      if (htmlFile) setPreviewHtml(htmlFile.content);
+    } catch (err) {
+      console.error("Preview generation failed:", err);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const switchTemplate = async (id: TemplateId) => {
+    if (!config) return;
+    patch("settings", { ...config.settings, activeTemplate: id });
+    // Re-generate preview after patching (small delay for state update)
+    setTimeout(generatePreview, 100);
+  };
+
+  if (ghLoading || !config) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-[600px] rounded-xl" />
+      </div>
+    );
+  }
+
+  const activeTmpl = TEMPLATE_DEFINITIONS.find((t) => t.id === activeTemplate);
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Live Preview</h1>
+          <p className="text-muted-foreground mt-1">
+            See exactly how your portfolio will look — switch templates instantly.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Device toggles */}
+          <div className="flex items-center border border-border/50 rounded-lg p-1">
+            {(Object.entries(deviceSizes) as [DeviceType, typeof deviceSizes[DeviceType]][]).map(
+              ([key, info]) => (
+                <Button
+                  key={key}
+                  variant={device === key ? "secondary" : "ghost"}
+                  size="icon"
+                  className="w-8 h-8"
+                  onClick={() => setDevice(key)}
+                  title={info.label}
+                >
+                  <info.icon className="w-4 h-4" />
+                </Button>
+              )
+            )}
+          </div>
+
+          <Button
+            onClick={generatePreview}
+            disabled={generating}
+            className="gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${generating ? "animate-spin" : ""}`} />
+            {previewHtml ? "Refresh" : "Generate Preview"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Template switcher bar */}
+      <div className="rounded-xl border border-border/50 bg-card/30 p-3">
+        <div className="flex items-center gap-2 mb-2">
+          <Palette className="w-4 h-4 text-muted-foreground" />
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Switch Template</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {TEMPLATE_DEFINITIONS.map((tmpl) => (
+            <button
+              key={tmpl.id}
+              onClick={() => switchTemplate(tmpl.id as TemplateId)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${
+                activeTemplate === tmpl.id
+                  ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                  : "border-border/50 bg-card/50 text-muted-foreground hover:border-primary/40 hover:text-foreground"
+              }`}
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: tmpl.accentColor }}
+              />
+              {tmpl.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Status bar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <Badge variant="outline" className="gap-1.5">
+          <span
+            className="w-2 h-2 rounded-full"
+            style={{ backgroundColor: activeTmpl?.accentColor }}
+          />
+          {activeTmpl?.name}
+        </Badge>
+        <Badge variant="outline">{config.projects.length} projects</Badge>
+        <Badge variant="outline">{config.skills.length} skills</Badge>
+        <Badge variant="outline">{config.experience.length} experience entries</Badge>
+      </div>
+
+      {/* Preview frame */}
+      <Card className="border-border/50 bg-card/30 overflow-hidden">
+        <div
+          className="mx-auto transition-all duration-300 bg-background"
+          style={{ width: deviceSizes[device].width, maxWidth: "100%" }}
+        >
+          {previewHtml ? (
+            <iframe
+              srcDoc={previewHtml}
+              className="w-full border-0"
+              style={{ height: "750px" }}
+              title="Portfolio Preview"
+              sandbox="allow-same-origin allow-scripts"
+            />
+          ) : (
+            <div className="flex items-center justify-center h-[750px] text-muted-foreground">
+              <div className="text-center space-y-4">
+                <Monitor className="w-16 h-16 mx-auto opacity-20" />
+                <div>
+                  <p className="font-medium">No preview yet</p>
+                  <p className="text-sm mt-1">Click &quot;Generate Preview&quot; to see your portfolio live</p>
+                </div>
+                <Button onClick={generatePreview} disabled={generating} className="gap-2">
+                  <RefreshCw className={`w-4 h-4 ${generating ? "animate-spin" : ""}`} />
+                  Generate Preview
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
+
+      {previewHtml && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <ExternalLink className="w-4 h-4" />
+          <span>
+            To deploy this portfolio, go to the{" "}
+            <a href="/dashboard/deploy" className="text-primary underline underline-offset-4">Deploy</a> page.
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}

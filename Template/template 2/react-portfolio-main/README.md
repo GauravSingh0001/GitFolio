@@ -1,0 +1,39 @@
+# Hacker Theme Portfolio ⚡
+
+A modern **hacker-style personal portfolio** built for showcasing frontend skills, projects, and technical identity.
+
+---
+
+## Built With
+
+- React 19
+- Vite
+- Tailwind CSS
+- JavaScript (ES6+)
+
+---
+
+## Demo
+
+Check out the live demo: [Demo](https://matrixuiportfolio.netlify.app/)
+
+![Portfolio Screenshot](https://i.ibb.co/ksFtXvRZ/jj.png)
+
+---
+
+## Features
+
+- Hacker / cyberpunk UI theme
+- Fully responsive design
+- Fast build & hot reload (HMR)
+- Clean component-based structure
+
+---
+
+## How to Run
+
+Clone the repository:
+
+```bash
+git clone https://github.com/khalidafghanmal/react-portfolio
+cd react-portfolio
