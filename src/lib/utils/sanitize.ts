@@ -1,25 +1,17 @@
-import DOMPurify from "dompurify";
-import { JSDOM } from "jsdom";
-
 /**
- * Server-side HTML sanitization using DOMPurify + jsdom.
- * Strips XSS vectors from GitHub README HTML content.
+ * Lightweight HTML escape for template rendering.
+ *
+ * All values passed to this function come from user-typed plain-text fields
+ * (names, bios, skill names, descriptions, etc.) — not from raw untrusted HTML.
+ * Standard entity encoding is sufficient to prevent XSS in the generated output
+ * without the overhead of jsdom + DOMPurify (which caused Vercel serverless
+ * function cold-start failures when the module failed to initialise).
  */
-export function sanitizeHTML(dirtyHTML: string): string {
-  const window = new JSDOM("").window;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const purify = DOMPurify(window as any);
-
-  return purify.sanitize(dirtyHTML, {
-    ALLOWED_TAGS: [
-      "h1", "h2", "h3", "h4", "h5", "h6",
-      "p", "br", "hr",
-      "ul", "ol", "li",
-      "a", "strong", "em", "code", "pre", "blockquote",
-      "img", "table", "thead", "tbody", "tr", "th", "td",
-      "span", "div", "section",
-    ],
-    ALLOWED_ATTR: ["href", "src", "alt", "class", "id", "target", "rel"],
-    ALLOW_DATA_ATTR: false,
-  });
+export function sanitizeHTML(text: string): string {
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
 }
