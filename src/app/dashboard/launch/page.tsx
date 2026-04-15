@@ -46,8 +46,14 @@ export default function LaunchPage() {
       let result: { files?: { path: string; content: string }[]; error?: string };
       try { result = JSON.parse(text); }
       catch {
-        if (text.includes("<!DOCTYPE") || text.includes("<html")) throw new Error("Session expired — please sign in again.");
-        throw new Error(`Unexpected server response (${res.status})`);
+        // Server returned HTML instead of JSON — usually a login redirect
+        // caused by an expired or missing AUTH_URL env var on Vercel.
+        // On Vercel: set AUTH_URL = https://your-app.vercel.app in project settings.
+        throw new Error(
+          text.includes("<!DOCTYPE") || text.includes("<html")
+            ? `Server returned HTML instead of JSON (${res.status}). If on Vercel, ensure AUTH_URL is set. Try refreshing the page or signing out and back in.`
+            : `Unexpected server response (${res.status})`
+        );
       }
       if (!res.ok) throw new Error(result.error || `Server error ${res.status}`);
       const htmlFile = result.files?.find((f) => f.path === "index.html");
@@ -69,11 +75,12 @@ export default function LaunchPage() {
   }, [config, ghLoading]);
 
   /* ─── Switch template + re-generate ──────────── */
-  const switchTemplate = async (id: TemplateId) => {
+  const switchTemplate = (id: TemplateId) => {
     if (!config) return;
+    // patch() already writes to localStorage and debounces a server save —
+    // no need to await save() here (that could block/fail if session is stale)
     patch("settings", { ...config.settings, activeTemplate: id });
-    await save();
-    setTimeout(generate, 150);
+    setTimeout(generate, 100);
   };
 
   /* ─── Download via form POST → new tab ──────── */
