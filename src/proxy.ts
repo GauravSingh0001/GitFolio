@@ -9,11 +9,21 @@ import { NextResponse, type NextRequest } from "next/server";
 // This proxy refreshes the Supabase STORAGE client session so server
 // components can read/write portfolio configs. Route protection is
 // handled by src/app/dashboard/layout.tsx (calls Auth.js auth()).
+//
+// IMPORTANT: This middleware runs on Vercel's EDGE runtime.
+// @supabase/ssr uses Node.js APIs — we must guard every import
+// with try-catch to avoid Vercel returning an HTML 500 page.
 
 export async function proxy(request: NextRequest) {
-  // If Supabase env vars are not set (e.g. missing on a new Vercel project),
-  // skip Supabase session refresh and just pass the request through.
-  // This prevents the proxy from crashing and returning an HTML error page.
+  // ── Skip middleware entirely for API routes ──────────────────────────
+  // API routes manage their own auth. Running the Supabase session
+  // refresh here for API calls caused 500 HTML responses on Vercel
+  // because @supabase/ssr can crash on the Edge runtime.
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return NextResponse.next({ request });
+  }
+
+  // ── Skip if Supabase env vars are missing ────────────────────────────
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
     !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -21,41 +31,40 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next({ request });
   }
 
-  // Dynamically import to avoid module-level crashes when env vars are missing
-  const { createServerClient } = await import("@supabase/ssr");
-
-  let supabaseResponse = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
+  // ── Supabase session refresh (best-effort, never blocks the request) ──
   try {
-    // Refresh Supabase storage session if expired.
-    await supabase.auth.getUser();
-  } catch {
-    // If Supabase refresh fails, still pass the request through.
-    // Never let this crash the entire request pipeline.
-  }
+    const { createServerClient } = await import("@supabase/ssr");
 
-  return supabaseResponse;
+    let supabaseResponse = NextResponse.next({ request });
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) =>
+              request.cookies.set(name, value)
+            );
+            supabaseResponse = NextResponse.next({ request });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            );
+          },
+        },
+      }
+    );
+
+    await supabase.auth.getUser();
+    return supabaseResponse;
+  } catch {
+    // If anything in the Supabase block fails (import, init, getUser),
+    // pass the request through unchanged rather than returning a 500.
+    return NextResponse.next({ request });
+  }
 }
 
 export const config = {

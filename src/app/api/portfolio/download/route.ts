@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+
+// Force Node.js runtime on Vercel.
+export const runtime = "nodejs";
+
 import { renderMinimalistTemplate } from "@/lib/templates/minimalist";
 import { renderCreativeTemplate } from "@/lib/templates/creative";
 import { renderDataVizTemplate } from "@/lib/templates/data-viz";
