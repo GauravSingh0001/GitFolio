@@ -1,15 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth/config";
-import { createClient } from "@supabase/supabase-js";
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import type { PortfolioConfig } from "@/types/portfolio";
 
-function getServiceClient() {
+/**
+ * When SUPABASE_SERVICE_ROLE_KEY is set, the client bypasses RLS entirely.
+ * Without it we fall back to the anon key and must satisfy the RLS policy
+ * via a separate SET LOCAL call before queries.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getServiceClient(): SupabaseClient<any> {
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    // Service role key gives us server-side access bypassing RLS
     process.env.SUPABASE_SERVICE_ROLE_KEY ||
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+}
+
+/**
+ * When using the anon key (no service role), we need to set the
+ * app.github_username session config that the RLS policy checks.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function setRlsContext(supabase: SupabaseClient<any>, username: string) {
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) return;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.rpc as any)("set_config", {
+      setting_name: "app.github_username",
+      setting_value: username,
+      is_local: true,
+    });
+  } catch {
+    // Non-fatal
+  }
 }
 
 export async function GET(_request: NextRequest) {
@@ -19,6 +44,8 @@ export async function GET(_request: NextRequest) {
   }
 
   const supabase = getServiceClient();
+  await setRlsContext(supabase, session.githubUsername);
+
   const { data, error } = await supabase
     .from("portfolio_configs")
     .select("config")
@@ -26,10 +53,10 @@ export async function GET(_request: NextRequest) {
     .single();
 
   if (error) {
-    // Not found is OK — user hasn't saved yet
     if (error.code === "PGRST116") {
       return NextResponse.json({ config: null });
     }
+    console.error("Config GET error:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
@@ -42,26 +69,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  let config: PortfolioConfig;
   try {
-    const config = (await request.json()) as PortfolioConfig;
-    const supabase = getServiceClient();
-
-    const { error } = await supabase.from("portfolio_configs").upsert(
-      {
-        user_id: session.githubUsername,
-        config,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" }
-    );
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("Config save error:", err);
-    return NextResponse.json({ error: "Failed to save" }, { status: 500 });
+    config = (await request.json()) as PortfolioConfig;
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
+
+  const supabase = getServiceClient();
+  await setRlsContext(supabase, session.githubUsername);
+
+  const { error } = await supabase.from("portfolio_configs").upsert(
+    {
+      user_id: session.githubUsername,
+      config,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id" }
+  );
+
+  if (error) {
+    console.error("Config POST upsert error:", error.message, error.code);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ ok: true });
 }

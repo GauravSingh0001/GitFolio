@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GitFolio Engine | Professional Developer Portfolios</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&amp;family=Inter:wght@400;500;600&amp;family=Space_Grotesk:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-surface-variant": "#c1c6d7",
+                        "secondary-container": "#00a572",
+                        "primary-fixed": "#d8e2ff",
+                        "surface-container-lowest": "#0e0e0e",
+                        "error-container": "#93000a",
+                        "on-secondary-fixed-variant": "#005236",
+                        "on-secondary-fixed": "#002113",
+                        "tertiary-container": "#68778b",
+                        "on-primary-fixed": "#001a43",
+                        "surface": "#131313",
+                        "surface-dim": "#131313",
+                        "inverse-primary": "#0059c5",
+                        "tertiary-fixed": "#d4e4fa",
+                        "primary": "#aec6ff",
+                        "surface-container-highest": "#353534",
+                        "secondary-fixed": "#6ffbbe",
+                        "tertiary": "#b9c8de",
+                        "on-surface": "#e5e2e1",
+                        "on-primary-container": "#ffffff",
+                        "on-background": "#e5e2e1",
+                        "inverse-surface": "#e5e2e1",
+                        "primary-fixed-dim": "#aec6ff",
+                        "on-error": "#690005",
+                        "on-primary": "#002e6b",
+                        "on-tertiary": "#233143",
+                        "on-tertiary-container": "#fffeff",
+                        "surface-tint": "#aec6ff",
+                        "outline-variant": "#414754",
+                        "inverse-on-surface": "#313030",
+                        "secondary-fixed-dim": "#4edea3",
+                        "surface-container-low": "#1c1b1b",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#353534",
+                        "primary-container": "#0070f3",
+                        "secondary": "#4edea3",
+                        "on-tertiary-fixed": "#0d1c2d",
+                        "on-error-container": "#ffdad6",
+                        "on-secondary": "#003824",
+                        "surface-container-high": "#2a2a2a",
+                        "on-primary-fixed-variant": "#004397",
+                        "background": "#131313",
+                        "surface-bright": "#3a3939",
+                        "outline": "#8b90a0",
+                        "on-tertiary-fixed-variant": "#39485a",
+                        "tertiary-fixed-dim": "#b9c8de",
+                        "surface-container": "#201f1f",
+                        "on-secondary-container": "#00311f"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Manrope"],
+                        "body": ["Inter"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .glow-accent {
+            background: radial-gradient(circle at 50% 50%, rgba(174, 198, 255, 0.08) 0%, rgba(19, 19, 19, 0) 70%);
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface font-body selection:bg-primary/30">
+<!-- Top Navigation Shell -->
+<nav class="fixed top-0 w-full z-50 bg-[#131313]/60 backdrop-blur-xl flex justify-between items-center px-8 h-16 w-full max-w-none">
+<div class="text-xl font-black text-[#E5E2E1] tracking-tighter font-headline">GitFolio Engine</div>
+<div class="hidden md:flex items-center gap-8 font-headline font-bold tracking-tight text-sm">
+<a class="text-[#E5E2E1]/70 hover:text-[#E5E2E1] transition-all duration-200" href="#">Features</a>
+<a class="text-[#E5E2E1]/70 hover:text-[#E5E2E1] transition-all duration-200" href="#">Templates</a>
+<a class="text-[#E5E2E1]/70 hover:text-[#E5E2E1] transition-all duration-200" href="#">Pricing</a>
+</div>
+<button class="bg-primary-container text-on-primary-container px-4 py-2 rounded-lg font-headline font-bold text-sm flex items-center gap-2 active:scale-95 transition-transform hover:bg-primary-container/90">
+<span class="material-symbols-outlined text-sm" data-icon="terminal">terminal</span>
+            Sign in with GitHub
+        </button>
+</nav>
+<!-- Main Content Canvas -->
+<main class="pt-32 pb-24 overflow-x-hidden">
+<!-- Hero Section -->
+<section class="relative container mx-auto px-6 text-center max-w-5xl">
+<!-- Glow Effect -->
+<div class="absolute -top-48 left-1/2 -translate-x-1/2 w-[800px] h-[600px] glow-accent pointer-events-none"></div>
+<h1 class="font-headline font-extrabold text-5xl md:text-7xl lg:text-8xl tracking-tighter text-on-surface mb-6 leading-[1.1]">
+                GitFolio Engine
+            </h1>
+<p class="font-body text-on-surface-variant text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+                Generate a production-ready developer portfolio from your GitHub profile in under 60 seconds.
+            </p>
+<div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+<button class="bg-gradient-to-r from-primary to-primary-container text-on-primary px-8 py-4 rounded-xl font-headline font-bold text-lg flex items-center gap-3 shadow-[0_0_20px_rgba(174,198,255,0.2)] hover:shadow-[0_0_30px_rgba(174,198,255,0.4)] transition-all active:scale-95">
+<span class="material-symbols-outlined" data-icon="rocket_launch" style="font-variation-settings: 'FILL' 1;">rocket_launch</span>
+                    Start for Free
+                </button>
+<button class="bg-surface-container-low border border-outline-variant/15 text-on-surface-variant px-8 py-4 rounded-xl font-headline font-bold text-lg hover:bg-surface-bright hover:text-on-surface transition-all active:scale-95">
+                    View Examples
+                </button>
+</div>
+<!-- Terminal Visual Centerpiece -->
+<div class="relative max-w-3xl mx-auto">
+<div class="bg-surface-container-low rounded-xl p-1 shadow-2xl border border-outline-variant/10">
+<div class="bg-[#050505] rounded-lg overflow-hidden border border-outline-variant/5">
+<!-- Terminal Header -->
+<div class="flex items-center gap-2 px-4 py-3 bg-surface-container-high/50 border-b border-outline-variant/5">
+<div class="flex gap-1.5">
+<div class="w-2.5 h-2.5 rounded-full bg-error/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-secondary-container/40"></div>
+<div class="w-2.5 h-2.5 rounded-full bg-primary/40"></div>
+</div>
+<div class="ml-4 font-label text-[10px] tracking-widest text-outline uppercase flex items-center gap-2">
+<span class="material-symbols-outlined text-[12px]" data-icon="terminal">terminal</span>
+                                portfolio-build-process.sh
+                            </div>
+</div>
+<!-- Terminal Body -->
+<div class="p-6 font-label text-sm text-left leading-relaxed">
+<div class="flex gap-3 mb-2">
+<span class="text-secondary">$</span>
+<span class="text-on-surface-variant">gitfolio login --github</span>
+</div>
+<div class="flex gap-3 mb-2">
+<span class="text-primary">info</span>
+<span class="text-on-surface/80">Authenticating with GitHub... [OK]</span>
+</div>
+<div class="flex gap-3 mb-2">
+<span class="text-primary">info</span>
+<span class="text-on-surface/80">Fetching repos from user: <span class="text-secondary">@synthetic-arch</span></span>
+</div>
+<div class="flex gap-3 mb-2">
+<span class="text-secondary-fixed">success</span>
+<span class="text-on-surface/80">Found 42 public repositories. Sorting by stars...</span>
+</div>
+<div class="flex gap-3 mb-2">
+<span class="text-primary">info</span>
+<span class="text-on-surface/80">Optimizing assets &amp; generating metadata...</span>
+</div>
+<div class="flex gap-3 mb-4">
+<span class="text-primary">info</span>
+<span class="text-on-surface/80">Deploying to GitHub Pages...</span>
+</div>
+<div class="bg-secondary-container/10 border border-secondary-container/20 p-3 rounded-md flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-secondary animate-pulse" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="text-secondary font-bold">Build Complete!</span>
+</div>
+<span class="text-outline text-xs">deployed in 42.1s</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Feature Grid (Bento Style) -->
+<section class="container mx-auto px-6 mt-32 max-w-6xl">
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<!-- Large Feature Card -->
+<div class="md:col-span-8 bg-surface-container-low rounded-2xl p-8 overflow-hidden relative group">
+<div class="relative z-10">
+<div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<h3 class="font-headline font-bold text-2xl text-on-surface mb-3">Smart Aggregation</h3>
+<p class="text-on-surface-variant max-w-md leading-relaxed">
+                            Our engine intelligently scrapes your best work, categorizes languages, and extracts key metrics to tell your developer story automatically.
+                        </p>
+</div>
+<!-- Abstract Visualization Shape -->
+<div class="absolute -right-10 -bottom-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors"></div>
+<img alt="GitHub Activity Graph" class="absolute right-[-10%] bottom-[-10%] w-1/2 opacity-20 group-hover:opacity-40 transition-opacity rounded-xl rotate-[-5deg]" data-alt="abstract visual representation of a github activity heatmap with vibrant blue and cyan glowing data points" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBy0_1gtkR4cV679tOZ1yOGEsDw8dCvgNKyCtEAis3vQD-cf6w1YHNnIAdNXZuvpuiInWa-GOfHltGnaeNnNNebhPY2oVGlyFgNU4x9utW85ctqUBWvsU-sNfgsXM1UPRJ3bKbTBD36TVf48eQwaDNDySLunn8NXbqB1JZrC0-YsxGmn9pm6IojQcsF4vW0pwuiKSddoeRXtjVqSIeK2MAEb4UYWuUrrJiG7PauOM7box0UrX2hPUO-xjlaAmJALTgsIYon4FM8Jw"/>
+</div>
+<!-- Small Feature Card -->
+<div class="md:col-span-4 bg-surface-container-low rounded-2xl p-8 group hover:bg-surface-container-high transition-colors">
+<div class="w-12 h-12 bg-secondary/10 rounded-xl flex items-center justify-center mb-6 text-secondary">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</div>
+<h3 class="font-headline font-bold text-xl text-on-surface mb-3">Live Preview</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">
+                        Edit code and see changes in real-time. No refresh needed, just instant visual feedback.
+                    </p>
+</div>
+<!-- Small Feature Card -->
+<div class="md:col-span-4 bg-surface-container-low rounded-2xl p-8 group hover:bg-surface-container-high transition-colors">
+<div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6 text-primary">
+<span class="material-symbols-outlined" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<h3 class="font-headline font-bold text-xl text-on-surface mb-3">One-Click Deploy</h3>
+<p class="text-on-surface-variant text-sm leading-relaxed">
+                        Push directly to GitHub Pages, Vercel, or Netlify with a single click from our dashboard.
+                    </p>
+</div>
+<!-- Large Feature Card -->
+<div class="md:col-span-8 bg-surface-container-low rounded-2xl p-8 overflow-hidden relative group">
+<div class="relative z-10">
+<div class="w-12 h-12 bg-tertiary/10 rounded-xl flex items-center justify-center mb-6 text-tertiary">
+<span class="material-symbols-outlined" data-icon="dashboard_customize">dashboard_customize</span>
+</div>
+<h3 class="font-headline font-bold text-2xl text-on-surface mb-3">Custom Templates</h3>
+<p class="text-on-surface-variant max-w-md leading-relaxed">
+                            Choose from 20+ professionally designed templates ranging from clinical monospace to lush editorial layouts.
+                        </p>
+</div>
+<div class="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 opacity-30 group-hover:opacity-60 transition-opacity">
+<div class="w-48 h-12 bg-surface-container-high rounded border border-outline-variant/20"></div>
+<div class="w-48 h-12 bg-surface-container-high rounded border border-outline-variant/20"></div>
+<div class="w-48 h-12 bg-surface-container-high rounded border border-outline-variant/20"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Section -->
+<section class="container mx-auto px-6 mt-32 text-center">
+<div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-surface-container-high border border-outline-variant/10 mb-8">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label text-xs uppercase tracking-widest text-on-surface-variant">Live Performance Engine</span>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+<div>
+<div class="font-headline font-extrabold text-4xl text-on-surface mb-1">12k+</div>
+<div class="font-label text-[10px] uppercase tracking-tighter text-outline">Portfolios Built</div>
+</div>
+<div>
+<div class="font-headline font-extrabold text-4xl text-on-surface mb-1">60s</div>
+<div class="font-label text-[10px] uppercase tracking-tighter text-outline">Avg. Build Time</div>
+</div>
+<div>
+<div class="font-headline font-extrabold text-4xl text-on-surface mb-1">99%</div>
+<div class="font-label text-[10px] uppercase tracking-tighter text-outline">User Satisfaction</div>
+</div>
+<div>
+<div class="font-headline font-extrabold text-4xl text-on-surface mb-1">2.4m</div>
+<div class="font-label text-[10px] uppercase tracking-tighter text-outline">API Calls Monthly</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Status Bar Shell -->
+<footer class="fixed bottom-0 w-full h-8 z-50 bg-[#0E0E0E] border-t border-[#414754]/15 flex justify-end items-center px-6 gap-6">
+<div class="flex items-center gap-2 text-[#4EDEA3] font-label uppercase text-[10px] tracking-widest">
+<span class="material-symbols-outlined text-[14px]" data-icon="speed">speed</span>
+            API Limit: 4982/5000
+        </div>
+<div class="flex items-center gap-2 text-[#E5E2E1]/40 font-label uppercase text-[10px] tracking-widest">
+<span class="material-symbols-outlined text-[14px]" data-icon="sync">sync</span>
+            Sync: Operational
+        </div>
+</footer>
+<!-- Site Footer Section (Content) -->
+<footer class="bg-surface-container-lowest pt-20 pb-16 px-8 border-t border-outline-variant/5">
+<div class="container mx-auto max-w-6xl">
+<div class="flex flex-col md:flex-row justify-between items-start gap-12">
+<div class="max-w-xs">
+<div class="font-headline font-black text-2xl text-on-surface tracking-tighter mb-4">GitFolio Engine</div>
+<p class="text-on-surface-variant text-sm leading-relaxed">
+                        Empowering developers to showcase their craft through automated, high-end visual storytelling.
+                    </p>
+</div>
+<div class="grid grid-cols-2 sm:grid-cols-3 gap-12">
+<div>
+<h4 class="font-label text-[10px] uppercase tracking-widest text-outline mb-4">Platform</h4>
+<ul class="space-y-2 text-sm text-on-surface-variant">
+<li><a class="hover:text-primary transition-colors" href="#">Documentation</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Templates</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">API Reference</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label text-[10px] uppercase tracking-widest text-outline mb-4">Community</h4>
+<ul class="space-y-2 text-sm text-on-surface-variant">
+<li><a class="hover:text-primary transition-colors" href="#">GitHub Repo</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Discord Server</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Showcase</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-label text-[10px] uppercase tracking-widest text-outline mb-4">Legal</h4>
+<ul class="space-y-2 text-sm text-on-surface-variant">
+<li><a class="hover:text-primary transition-colors" href="#">Privacy Policy</a></li>
+<li><a class="hover:text-primary transition-colors" href="#">Terms of Service</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="mt-20 pt-8 border-t border-outline-variant/5 flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="text-[10px] font-label text-outline uppercase tracking-widest">
+                    © 2024 GitFolio Engine. Built for the synthetic architect.
+                </div>
+<div class="flex gap-6">
+<a class="text-outline hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="terminal">terminal</span>
+</a>
+<a class="text-outline hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="code">code</span>
+</a>
+<a class="text-outline hover:text-on-surface transition-colors" href="#">
+<span class="material-symbols-outlined text-lg" data-icon="share">share</span>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

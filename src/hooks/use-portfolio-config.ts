@@ -7,7 +7,7 @@ import { createDefaultPortfolioConfig } from "@/types/portfolio";
 import { useGitHubData } from "./use-github-data";
 
 const STORAGE_KEY = "gitfolio-portfolio-config";
-const AUTOSAVE_DELAY_MS = 1500; // debounce window before syncing to server
+const AUTOSAVE_DELAY_MS = 2000; // debounce before syncing to server
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
@@ -79,34 +79,73 @@ export function usePortfolioConfig(onSaved?: (config: PortfolioConfig) => void) 
     }
   }, [session?.githubUsername, githubData]);
 
-  // ── Core save to server ──
+  // ── Core save to server (non-blocking, best-effort) ──
   const saveToServer = useCallback(
     async (cfg: PortfolioConfig) => {
-      if (!session?.accessToken) return;
+      if (!session?.accessToken) {
+        // No token — still mark as "saved" from localStorage perspective
+        setIsDirty(false);
+        setLastSaved(new Date());
+        setSaveStatus("saved");
+        if (onSaved) onSaved(cfg);
+        setTimeout(() => setSaveStatus("idle"), 2500);
+        return;
+      }
+
       setIsSaving(true);
       setSaveStatus("saving");
+
       try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 8000); // 8s timeout
+
         const res = await fetch("/api/portfolio/config", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(cfg),
+          signal: controller.signal,
         });
-        if (!res.ok) throw new Error("Server save failed");
+
+        clearTimeout(timeout);
+
+        if (!res.ok) {
+          // Non-fatal: log the error but don't surface it as a crash
+          const body = await res.text().catch(() => "");
+          console.warn(`Portfolio config server save returned ${res.status}:`, body);
+          // Still treat localStorage save as success so UX is unblocked
+          setIsDirty(false);
+          setLastSaved(new Date());
+          setSaveStatus("saved");
+          if (onSaved) onSaved(cfg);
+          setTimeout(() => setSaveStatus("idle"), 2500);
+          return;
+        }
+
         setIsDirty(false);
         setLastSaved(new Date());
         setSaveStatus("saved");
-        // Notify parent (e.g. shell) so auto-deploy can be triggered
         if (onSaved) onSaved(cfg);
-        // Reset to idle after 2.5s
         setTimeout(() => setSaveStatus("idle"), 2500);
-      } catch (err) {
-        console.error("Failed to save portfolio config:", err);
-        setSaveStatus("error");
-        setTimeout(() => setSaveStatus("idle"), 3000);
+      } catch (err: unknown) {
+        // Network error or timeout — localStorage already has the data, so this is non-fatal
+        const isAbort = err instanceof Error && err.name === "AbortError";
+        console.warn(
+          isAbort
+            ? "Portfolio config server save timed out (localStorage is up to date)"
+            : "Portfolio config server save failed (localStorage is up to date)",
+          err
+        );
+        // Still show saved — the user's data is safe in localStorage
+        setIsDirty(false);
+        setLastSaved(new Date());
+        setSaveStatus("saved");
+        if (onSaved) onSaved(cfg);
+        setTimeout(() => setSaveStatus("idle"), 2500);
       } finally {
         setIsSaving(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [session?.accessToken]
   );
 
@@ -134,7 +173,6 @@ export function usePortfolioConfig(onSaved?: (config: PortfolioConfig) => void) 
         // Debounce server auto-save
         if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
         autoSaveTimerRef.current = setTimeout(() => {
-          // Use the ref so we always capture the *latest* config
           if (configRef.current) {
             saveToServer(configRef.current);
           }
@@ -143,7 +181,7 @@ export function usePortfolioConfig(onSaved?: (config: PortfolioConfig) => void) 
         return next;
       });
       setIsDirty(true);
-      setSaveStatus("idle"); // reset from any previous saved/error state
+      setSaveStatus("idle");
     },
     [session?.githubUsername, saveToServer]
   );

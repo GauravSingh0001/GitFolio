@@ -7,39 +7,48 @@ import { signOut } from "next-auth/react";
 import { useCallback } from "react";
 import {
   LayoutDashboard,
-  FolderGit2,
-  Eye,
-  Settings,
+  PenSquare,
   Rocket,
   LogOut,
   Zap,
-  ChevronRight,
-  PenSquare,
-  Palette,
   CheckCircle2,
   Loader2,
   AlertCircle,
   Cloud,
   CloudUpload,
+  BookOpen,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { usePortfolioConfig } from "@/hooks/use-portfolio-config";
 import { useDeployConfig } from "@/hooks/use-deploy-config";
 import type { PortfolioConfig } from "@/types/portfolio";
 
+/* ── Streamlined 3-step nav ─────────────────────────────────── */
 const navItems = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/editor", label: "Editor", icon: PenSquare },
-  { href: "/dashboard/templates", label: "Templates", icon: Palette },
-  { href: "/dashboard/projects", label: "Projects", icon: FolderGit2 },
-  { href: "/dashboard/preview", label: "Preview", icon: Eye },
-  { href: "/dashboard/settings", label: "Settings", icon: Settings },
-  { href: "/dashboard/deploy", label: "Deploy", icon: Rocket },
+  {
+    href: "/dashboard",
+    label: "Overview",
+    icon: LayoutDashboard,
+    description: "Your stats at a glance",
+  },
+  {
+    href: "/dashboard/editor",
+    label: "Build",
+    icon: PenSquare,
+    description: "Edit content & template",
+    badge: "Step 1",
+  },
+  {
+    href: "/dashboard/launch",
+    label: "Launch",
+    icon: Rocket,
+    description: "Preview & download site",
+    badge: "Step 2",
+  },
 ];
 
-/** Compact status pill shown in the top bar */
+/* ── Status pill ─────────────────────────────────────────────── */
 function StatusBar({
   saveStatus,
   isDirty,
@@ -59,79 +68,65 @@ function StatusBar({
     d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
   return (
-    <div className="flex items-center gap-4 text-xs">
-      {/* Save status */}
+    <div className="flex items-center gap-4 text-[10px] font-label uppercase tracking-wider">
       {saveStatus === "saving" && (
-        <span className="flex items-center gap-1.5 text-muted-foreground">
-          <Loader2 className="w-3 h-3 animate-spin" />
-          Saving…
+        <span className="flex items-center gap-1.5 text-[#c1c6d7]">
+          <Loader2 className="w-3 h-3 animate-spin" /> Saving…
         </span>
       )}
       {saveStatus === "saved" && (
-        <span className="flex items-center gap-1.5 text-emerald-500">
-          <CheckCircle2 className="w-3 h-3" />
-          Saved
+        <span className="flex items-center gap-1.5 text-[#4edea3]">
+          <CheckCircle2 className="w-3 h-3" /> Saved
         </span>
       )}
       {saveStatus === "error" && (
-        <span className="flex items-center gap-1.5 text-destructive">
-          <AlertCircle className="w-3 h-3" />
-          Save failed
+        <span className="flex items-center gap-1.5 text-[#ffb4ab]">
+          <AlertCircle className="w-3 h-3" /> Save failed
         </span>
       )}
       {isDirty && saveStatus === "idle" && (
-        <span className="flex items-center gap-1.5 text-amber-500">
-          <Cloud className="w-3 h-3" />
-          Unsaved
+        <span className="flex items-center gap-1.5 text-amber-400">
+          <Cloud className="w-3 h-3" /> Unsaved
         </span>
       )}
       {!isDirty && saveStatus === "idle" && lastSaved && (
-        <span className="text-muted-foreground/50">
-          Saved {fmt(lastSaved)}
-        </span>
+        <span className="text-[#8b90a0]">Saved {fmt(lastSaved)}</span>
       )}
 
-      {/* Divider — only when deploy status is visible */}
-      {(deployStatus !== "idle" || (deployConfig.autoDeployEnabled && lastDeployed)) && (
-        <span className="text-border">|</span>
+      {(deployStatus === "deploying" ||
+        deployStatus === "success" ||
+        deployStatus === "error") && (
+        <span className="text-[#414754]">|</span>
       )}
 
-      {/* Deploy status */}
       {deployStatus === "deploying" && (
-        <span className="flex items-center gap-1.5 text-blue-400">
-          <CloudUpload className="w-3 h-3 animate-pulse" />
-          Deploying…
+        <span className="flex items-center gap-1.5 text-[#aec6ff]">
+          <CloudUpload className="w-3 h-3 animate-pulse" /> Deploying…
         </span>
       )}
       {deployStatus === "success" && (
-        <span className="flex items-center gap-1.5 text-emerald-500">
-          <CloudUpload className="w-3 h-3" />
-          Deployed!
+        <span className="flex items-center gap-1.5 text-[#4edea3]">
+          <CloudUpload className="w-3 h-3" /> Deployed!
         </span>
       )}
       {deployStatus === "error" && (
-        <span className="flex items-center gap-1.5 text-destructive">
-          <AlertCircle className="w-3 h-3" />
-          Deploy failed
+        <span className="flex items-center gap-1.5 text-[#ffb4ab]">
+          <AlertCircle className="w-3 h-3" /> Deploy failed
         </span>
       )}
       {deployConfig.autoDeployEnabled && lastDeployed && deployStatus === "idle" && (
-        <span className="text-muted-foreground/50">
-          Deployed {fmt(lastDeployed)}
-        </span>
+        <span className="text-[#8b90a0]">Deployed {fmt(lastDeployed)}</span>
       )}
-
-      {/* Auto-deploy badge */}
       {deployConfig.autoDeployEnabled && (
-        <span className="flex items-center gap-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 px-2 py-0.5 rounded-full text-[10px] font-medium">
-          <Zap className="w-2.5 h-2.5" />
-          Auto-deploy ON
+        <span className="flex items-center gap-1 bg-[#aec6ff]/10 text-[#aec6ff] border border-[#aec6ff]/20 px-2 py-0.5 rounded-full">
+          <Zap className="w-2.5 h-2.5" /> Auto-deploy ON
         </span>
       )}
     </div>
   );
 }
 
+/* ── Main shell ──────────────────────────────────────────────── */
 export function DashboardShell({
   session,
   children,
@@ -141,15 +136,9 @@ export function DashboardShell({
 }) {
   const pathname = usePathname();
 
-  // Wire deploy hook first so we can pass triggerAutoDeploy as the save callback
-  const {
-    deployConfig,
-    triggerAutoDeploy,
-    deployStatus,
-    lastDeployed,
-  } = useDeployConfig();
+  const { deployConfig, triggerAutoDeploy, deployStatus, lastDeployed } =
+    useDeployConfig();
 
-  // Pass triggerAutoDeploy as onSaved → auto-deploys 3s after each successful save
   const onSaved = useCallback(
     (config: PortfolioConfig) => {
       triggerAutoDeploy(config);
@@ -159,86 +148,124 @@ export function DashboardShell({
 
   const { saveStatus, isDirty, lastSaved } = usePortfolioConfig(onSaved);
 
+  const activeItem = navItems.find((n) =>
+    n.href === "/dashboard"
+      ? pathname === "/dashboard"
+      : pathname.startsWith(n.href)
+  );
+
   return (
-    <div className="flex h-screen bg-background">
-      {/* ── Sidebar ── */}
-      <aside className="w-64 border-r border-border/50 flex flex-col bg-card/30 shrink-0">
+    <div className="flex h-screen bg-[#0e0e0e] text-[#e5e2e1] overflow-hidden">
+      {/* ── Sidebar ───────────────────────────────── */}
+      <aside className="w-56 shrink-0 flex flex-col border-r border-[#414754]/15 bg-[#0e0e0e]">
         {/* Logo */}
-        <div className="p-4 border-b border-border/50">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-sm group-hover:shadow-blue-500/25 transition-shadow">
-              <Zap className="w-4 h-4 text-white" />
+        <div className="px-5 py-5 border-b border-[#414754]/15">
+          <Link href="/">
+            <div className="font-headline font-black text-lg tracking-tighter text-[#e5e2e1]">
+              GitFolio Engine
             </div>
-            <span className="font-bold text-lg tracking-tight">GitFolio</span>
+            <div className="font-label text-[10px] uppercase tracking-widest text-[#8b90a0] mt-0.5">
+              Developer Workspace
+            </div>
           </Link>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        {/* Primary nav */}
+        <nav className="flex-1 px-3 py-5 space-y-1">
+          {/* Workflow label */}
+          <p className="font-label text-[9px] uppercase tracking-widest text-[#8b90a0]/60 px-3 mb-3">
+            Workflow
+          </p>
+
           {navItems.map((item) => {
             const isActive =
               item.href === "/dashboard"
                 ? pathname === "/dashboard"
                 : pathname.startsWith(item.href);
 
-            // Special badge for Deploy when auto-deploy is on
-            const showBadge =
-              item.href === "/dashboard/deploy" && deployConfig.autoDeployEnabled;
-
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 group",
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    ? "bg-[#1c1b1b] text-[#aec6ff]"
+                    : "text-[#e5e2e1]/50 hover:bg-[#1c1b1b]/60 hover:text-[#e5e2e1]"
                 )}
               >
-                <item.icon className="w-4 h-4 shrink-0" />
-                <span className="flex-1">{item.label}</span>
-                {showBadge && !isActive && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse" />
-                )}
-                {isActive && (
-                  <ChevronRight className="w-3 h-3 opacity-60" />
+                <item.icon
+                  className={cn(
+                    "w-4 h-4 shrink-0 transition-colors",
+                    isActive ? "text-[#aec6ff]" : "group-hover:text-[#aec6ff]"
+                  )}
+                />
+                <span className="flex-1 truncate">{item.label}</span>
+                {item.badge && (
+                  <span
+                    className={cn(
+                      "text-[9px] font-label uppercase tracking-wider px-1.5 py-0.5 rounded-full border",
+                      isActive
+                        ? "text-[#aec6ff] border-[#aec6ff]/30 bg-[#aec6ff]/10"
+                        : "text-[#8b90a0]/60 border-[#414754]/30"
+                    )}
+                  >
+                    {item.badge}
+                  </span>
                 )}
               </Link>
             );
           })}
         </nav>
 
+        {/* Bottom actions */}
+        <div className="px-3 py-3 space-y-0.5 border-t border-[#414754]/15">
+          <a
+            href="https://github.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[#e5e2e1]/40 hover:bg-[#1c1b1b]/60 hover:text-[#e5e2e1] transition-all group"
+          >
+            <BookOpen className="w-4 h-4 shrink-0 group-hover:text-[#aec6ff] transition-colors" />
+            Docs
+          </a>
+        </div>
+
         {/* User */}
-        <div className="p-3 border-t border-border/50">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-muted/30 transition-colors">
-            <Avatar className="w-8 h-8 shrink-0">
+        <div className="px-3 pb-3 border-t border-[#414754]/15 pt-3">
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[#1c1b1b]/50 transition-colors">
+            <Avatar className="w-7 h-7 shrink-0">
               <AvatarImage src={session.avatarUrl} />
-              <AvatarFallback className="text-xs">
+              <AvatarFallback className="text-xs bg-[#2a2a2a] text-[#c1c6d7]">
                 {session.githubUsername?.[0]?.toUpperCase()}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{session.githubUsername}</p>
-              <p className="text-xs text-muted-foreground">GitHub</p>
+              <p className="text-sm font-medium truncate text-[#e5e2e1]">
+                {session.githubUsername}
+              </p>
+              <p className="text-[9px] font-label text-[#8b90a0] uppercase tracking-wider">
+                GitHub
+              </p>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="w-8 h-8 shrink-0 text-muted-foreground hover:text-destructive transition-colors"
+            <button
               onClick={() => signOut({ callbackUrl: "/" })}
               title="Sign out"
+              className="w-6 h-6 flex items-center justify-center rounded text-[#8b90a0] hover:text-[#ffb4ab] transition-colors"
             >
-              <LogOut className="w-4 h-4" />
-            </Button>
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
           </div>
         </div>
       </aside>
 
-      {/* ── Main ── */}
+      {/* ── Main content ──────────────────────────── */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top bar */}
-        <div className="h-10 border-b border-border/50 px-6 flex items-center justify-end bg-background/80 backdrop-blur-sm shrink-0">
+        <div className="h-10 border-b border-[#414754]/15 px-6 flex items-center justify-between bg-[#131313]/80 backdrop-blur-sm shrink-0">
+          <div className="font-label text-[10px] uppercase tracking-widest text-[#8b90a0]">
+            {activeItem?.label ?? "Dashboard"}
+          </div>
           <StatusBar
             saveStatus={saveStatus}
             isDirty={isDirty}
@@ -249,9 +276,22 @@ export function DashboardShell({
           />
         </div>
 
-        <main className="flex-1 overflow-auto">
-          <div className="p-8">{children}</div>
+        {/* Page */}
+        <main className="flex-1 overflow-auto scrollbar-thin">
+          <div className="p-8 pb-12">{children}</div>
         </main>
+      </div>
+
+      {/* ── Global status bar ─────────────────────── */}
+      <div className="status-bar">
+        <div className="flex items-center gap-1.5 text-[#4edea3] font-label uppercase text-[10px] tracking-widest">
+          <Zap className="w-3 h-3" />
+          API Limit: 4982/5000
+        </div>
+        <div className="flex items-center gap-1.5 text-[#e5e2e1]/30 font-label uppercase text-[10px] tracking-widest">
+          <span>↺</span>
+          Sync: Operational
+        </div>
       </div>
     </div>
   );
